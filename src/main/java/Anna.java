@@ -1,5 +1,5 @@
 import java.util.*;
-
+import java.lang.*;
 public class Anna {
     public static void main(String[] args) {
     Scanner in = new Scanner(System.in);
@@ -11,10 +11,11 @@ public class Anna {
     System.out.println("What can i do for you?");
     System.out.println(line);
     int c = 0;
-    String[] list = new String[100];
+    Task[] list = new Task[100];
     for (int i = 1; i <= 100; i++) {
     String word = in.nextLine();
     c = c + 5;
+    list[i] = new Task(word);
     if(word.equals("bye")) {
     break;
     }
@@ -24,14 +25,35 @@ public class Anna {
         }
         System.out.println(line.substring(0,c) + "(._.)" + line.substring(c+5,len));
         if(word.equals("list")) {
+            System.out.println("Here are the tasks in your list:");
             for(int j=1;j<i;j++) {
-                System.out.println(j+". " + list[j]);
+                System.out.println(j+". " + list[j].toString());
             }
             i = i - 1;
+            continue;
+        }
+        else if(word.startsWith("mark")) {
+            Scanner skip = new Scanner(word);
+            skip.next();
+            int index = skip.nextInt();
+            list[index].mark(true);
+            System.out.println("Nice! I've marked this task as done:");
+            System.out.println(list[index].toString());
+            i--;
+            continue;
+        }
+        else if(word.startsWith("unmark")) {
+            Scanner skip = new Scanner(word);
+            skip.next();
+            int index = skip.nextInt();
+            list[index].mark(false);
+            System.out.println("OK, I've marked this task as not done yet:");
+            System.out.println(list[index].toString());
+            i--;
+            continue;
         }
         else{
-            list[i] = word;
-            System.out.println("added: " + list[i]);
+            System.out.println("added: " + word);
         }
         System.out.println(line.substring(0,c) + "(._.)" + line.substring(c+5,len));
     }
