@@ -11,10 +11,11 @@ public class Anna {
     System.out.println("What can i do for you?");
     System.out.println(line);
     int c = 0;
+    String[] list = new String[100];
     for (int i = 0; i <= 100; i++) {
-    String echo = in.nextLine();
+    String word = in.nextLine();
     c = c + 5;
-    if(echo.equals("bye")) {
+    if(word.equals("bye")) {
     break;
     }
     else {
@@ -22,7 +23,16 @@ public class Anna {
             c = 0;
         }
         System.out.println(line.substring(0,c) + "(._.)" + line.substring(c+5,len));
-        System.out.println(echo);
+        if(word.equals("list")) {
+            for(int j=0;j<i;j++) {
+                System.out.println(j+". " + list[j]);
+            }
+            i = i - 1;
+        }
+        else{
+            list[i] = word;
+            System.out.println("added: " + list[i]);
+        }
         System.out.println(line.substring(0,c) + "(._.)" + line.substring(c+5,len));
     }
     }
