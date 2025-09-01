@@ -52,8 +52,32 @@ public class Anna {
             i--;
             continue;
         }
+        else if(word.startsWith("todo")){
+            System.out.println("Got it. I've added this task:");
+            String description = word.substring(5);
+            list[i] = new Todo(description);
+            System.out.println(list[i].toString());
+            System.out.println("Now you have " + i + " tasks in the list.");
+        }
+        else if(word.startsWith("deadline")) {
+            System.out.println("Got it. I've added this task:");
+            String description = word.substring(9,word.indexOf('/'));
+            String by = word.substring(word.indexOf('/') + 3);
+            list[i] = new Deadline(description,by);
+            System.out.println(list[i].toString());
+            System.out.println("Now you have " + i + " tasks in the list.");
+        }
+        else if(word.startsWith("event")) {
+            System.out.println("Got it. I've added this task:");
+            String description = word.substring(6,word.indexOf('/'));
+            String from = word.substring(word.indexOf('/') + 5, word.lastIndexOf('/'));
+            String to = word.substring(word.lastIndexOf('/') + 3);
+            list[i] = new Event(description,from,to);
+            System.out.println(list[i].toString());
+            System.out.println("Now you have " + i + " tasks in the list.");
+        }
         else{
-            System.out.println("added: " + word);
+            i--;
         }
         System.out.println(line.substring(0,c) + "(._.)" + line.substring(c+5,len));
     }
