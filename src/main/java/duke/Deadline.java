@@ -9,6 +9,11 @@ public class Deadline extends Task {
     }
 
     @Override
+    public String toSaveFormat() {
+        return "D | " + statusBit() + " | " + word + " | " + by;
+    }
+
+    @Override
     public String toString() {
         return "[D]" + super.toString() + " (by: " + by + ")";
     }

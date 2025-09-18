@@ -1,9 +1,22 @@
 import duke.*;
+import java.io.IOException;
 import java.util.*;
 import java.lang.*;
 public class Anna {
     public static void main(String[] args) {
     Scanner in = new Scanner(System.in);
+    Storage storage = new Storage("./data/anna.txt");
+    ArrayList<String> loadedTasks;
+    try {
+        loadedTasks = storage.load();
+        System.out.println("Loaded tasks from file:");
+        for (String task : loadedTasks) {
+            System.out.println(task);
+        }
+      } catch(IOException e) {
+        System.out.println("Error loading file: " + e.getMessage());
+        loadedTasks = new ArrayList<>();
+       }
 
     String line = "____________________________________________________________";
     int len = line.length();
