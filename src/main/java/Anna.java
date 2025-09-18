@@ -1,10 +1,10 @@
 import duke.*;
-import java.util.Scanner;
-import java.util.ArrayList;
+import java.util.*;
 import java.lang.*;
 public class Anna {
     public static void main(String[] args) {
     Scanner in = new Scanner(System.in);
+
     String line = "____________________________________________________________";
     int len = line.length();
     System.out.println(line);
@@ -12,9 +12,8 @@ public class Anna {
     System.out.println("What can i do for you?");
     System.out.println(line);
     int c = 0;
-    ArrayList<Task> list = new ArrayList<>();
-    int i = 0;
-    while (true) {
+    Task[] list = new Task[100];
+    for (int i = 1; i <= 100; i++) {
     String word = in.nextLine();
     c = c + 5;
     if(word.equals("bye")) {
@@ -28,9 +27,10 @@ public class Anna {
        try {
            if (word.equals("list")) {
                System.out.println("Here are the tasks in your list:");
-               for (int j = 0; j < list.size(); j++) {
-                   System.out.println((j + 1) + ". " + list.get(j).toString());
+               for (int j = 1; j < i; j++) {
+                   System.out.println(j + ". " + list[j].toString());
                }
+               i = i - 1;
                continue;
            } else if (word.startsWith("mark")) {
                Scanner skip = new Scanner(word);
@@ -41,13 +41,14 @@ public class Anna {
                if (!skip.hasNextInt()) {
                    throw new DukeException("You know of numbers don't you? Use them.");
                }
-               int index = skip.nextInt() - 1;
-               if (index < 0 || index >= list.size()){
+               int index = skip.nextInt();
+               if (index < 1 || index >= i || list[index] == null){
                    throw new DukeException("Did you even come up with that many tasks in the first place?" + index);
                }
-               list.get(index).mark(true);
+               list[index].mark(true);
                System.out.println("Nice! I've marked this task as done:");
-               System.out.println(list.get(index).toString());
+               System.out.println(list[index].toString());
+               i--;
                continue;
            } else if (word.startsWith("unmark")) {
                Scanner skip = new Scanner(word);
@@ -58,79 +59,66 @@ public class Anna {
                if (!skip.hasNextInt()) {
                    throw new DukeException("You know of numbers don't you? Use them.");
                }
-               int index = skip.nextInt() - 1;
-               if (index < 0 || index >= list.size()){
+               int index = skip.nextInt();
+               if (index < 1 || index >= i || list[index] == null){
                    throw new DukeException("Did you even come up with that many tasks in the first place?" + index);
                }
-               list.get(index).mark(false);
+               list[index].mark(false);
                System.out.println("OK, I've marked this task as not done yet:");
-               System.out.println(list.get(index).toString());
+               System.out.println(list[index].toString());
                i--;
                continue;
-           } else if (word.startsWith("delete")) {
-               Scanner skip = new Scanner(word);
-               skip.next();
-               if (!skip.hasNextInt()) {
-                   throw new DukeException("You know of numbers don't you? Use them.");
-               }
-               int index = skip.nextInt() - 1;
-               if (index < 0 || index >= list.size()) {
-                   throw new DukeException("Did you even come up with that many tasks in the first place?" + (index + 1));
-               }
-               Task removed = list.remove(index);
-               System.out.println("Noted. I've removed this task:");
-               System.out.println("  " + removed);
-               System.out.println("Now you have " + list.size() + " tasks in the list.");
-               continue;
            } else if (word.startsWith("todo")) {
-               String description = word.substring(4).trim();
-               Task task = new Todo(description);
+               list[i] = new Task(word);
+               String description = word.substring(4);
                if (description.isEmpty()) {
                    throw new DukeException("I am in fact not capable of making up tasks");
                }
                System.out.println("Got it. I've added this task:");
-               list.add(task);
-               System.out.println(task.toString());
-               System.out.println("Now you have " + list.size() + " tasks in the list.");
+               list[i] = new Todo(description);
+               System.out.println(list[i].toString());
+               System.out.println("Now you have " + i + " tasks in the list.");
            } else if (word.startsWith("deadline")) {
                if (!word.contains("/by")) {
                    throw new DukeException("You're smart enough to use the right format aren't you?");
                }
+               list[i] = new Task(word);
                System.out.println("Got it. I've added this task:");
-               String description = word.substring(9, word.indexOf('/')).trim();
+               String description = word.substring(9, word.indexOf('/'));
                if (description.isEmpty()) {
                    throw new DukeException("Existential dread doesn't count, type in something adequate and preferably visible!");
                }
-               String by = word.substring(word.indexOf('/') + 3).trim();
+               String by = word.substring(word.indexOf('/') + 3);
                if (by.isEmpty()) {
                    throw new DukeException("Planning to procrastinate huh?");
                }
-               Task task = new Deadline(description, by);
-               list.add(task);
-               System.out.println(task.toString());
-               System.out.println("Now you have " + list.size() + " tasks in the list.");
+               list[i] = new Deadline(description, by);
+               System.out.println(list[i].toString());
+               System.out.println("Now you have " + i + " tasks in the list.");
            } else if (word.startsWith("event")) {
                if (!word.contains("/from") || !word.contains("/to")) {
                    throw new DukeException("ain't got a timeframe?");
                }
+               list[i] = new Task(word);
                System.out.println("Got it. I've added this task:");
-               String description = word.substring(5, word.indexOf('/')).trim();
+               String description = word.substring(6, word.indexOf('/'));
                if (description.isEmpty()) {
                    throw new DukeException("No event in mind at all?");
                }
-               String from = word.substring(word.indexOf('/') + 6, word.lastIndexOf('/')).trim();
-               String to = word.substring(word.lastIndexOf('/') + 3).trim();
+               String from = word.substring(word.indexOf('/') + 5, word.lastIndexOf('/'));
+               String to = word.substring(word.lastIndexOf('/') + 3);
                if (from.isEmpty() || to.isEmpty()) {
                    throw new DukeException("Forever ain't a timeframe, use the typical hours like a normal person!");
                }
-               Task task = new Event(description, from, to);
-               list.add(task);
-               System.out.println(task.toString());
-               System.out.println("Now you have " + list.size() + " tasks in the list.");
+               list[i] = new Event(description, from, to);
+               System.out.println(list[i].toString());
+               System.out.println("Now you have " + i + " tasks in the list.");
            } else {
+               i--;
                throw new DukeException("I've got no clue what you're possibly tryna do");
            }
        } catch (DukeException e) {
+           i--;
            System.out.println(line);
            System.out.println(" " + e.getMessage());
            System.out.println(line);
