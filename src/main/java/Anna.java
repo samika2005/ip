@@ -1,133 +1,173 @@
+
 import duke.*;
-import java.util.*;
 import java.lang.*;
+import java.util.ArrayList;
+import java.util.Scanner;
+import java.io.IOException;
+
 public class Anna {
     public static void main(String[] args) {
-    Scanner in = new Scanner(System.in);
+        Scanner in = new Scanner(System.in);
 
-    String line = "____________________________________________________________";
-    int len = line.length();
-    System.out.println(line);
-    System.out.println("Hello! I'm Anna!");
-    System.out.println("What can i do for you?");
-    System.out.println(line);
-    int c = 0;
-    Task[] list = new Task[100];
-    for (int i = 1; i <= 100; i++) {
-    String word = in.nextLine();
-    c = c + 5;
-    if(word.equals("bye")) {
-    break;
-    }
-    else {
-        if((c%len) >= (len-5)) {
-            c = 0;
+        String line = "____________________________________________________________";
+        int len = line.length();
+        System.out.println(line);
+        System.out.println("Hello! I'm Anna!");
+        System.out.println("What can i do for you?");
+        System.out.println(line);
+
+        ArrayList<Task> list = new ArrayList<>();
+
+        Storage storage = new Storage("data/anna.txt");
+        try {
+            ArrayList<Task> loaded = storage.load();   // load() throws DukeException
+            list.addAll(loaded);
+        } catch (IOException | DukeException e) {
+            // start empty if file is missing/corrupted/unparseable
+            System.out.println("No previous tasks found, starting fresh!");
         }
-        System.out.println(line.substring(0,c) + "(._.)" + line.substring(c+5,len));
-       try {
-           if (word.equals("list")) {
-               System.out.println("Here are the tasks in your list:");
-               for (int j = 1; j < i; j++) {
-                   System.out.println(j + ". " + list[j].toString());
-               }
-               i = i - 1;
-               continue;
-           } else if (word.startsWith("mark")) {
-               Scanner skip = new Scanner(word);
-               if (!skip.hasNext()) {
-                   throw new DukeException("Finish the sentence!!");
-               }
-               skip.next();
-               if (!skip.hasNextInt()) {
-                   throw new DukeException("You know of numbers don't you? Use them.");
-               }
-               int index = skip.nextInt();
-               if (index < 1 || index >= i || list[index] == null){
-                   throw new DukeException("Did you even come up with that many tasks in the first place?" + index);
-               }
-               list[index].mark(true);
-               System.out.println("Nice! I've marked this task as done:");
-               System.out.println(list[index].toString());
-               i--;
-               continue;
-           } else if (word.startsWith("unmark")) {
-               Scanner skip = new Scanner(word);
-               if (!skip.hasNext()) {
-                   throw new DukeException("Finish the sentence!!");
-               }
-               skip.next();
-               if (!skip.hasNextInt()) {
-                   throw new DukeException("You know of numbers don't you? Use them.");
-               }
-               int index = skip.nextInt();
-               if (index < 1 || index >= i || list[index] == null){
-                   throw new DukeException("Did you even come up with that many tasks in the first place?" + index);
-               }
-               list[index].mark(false);
-               System.out.println("OK, I've marked this task as not done yet:");
-               System.out.println(list[index].toString());
-               i--;
-               continue;
-           } else if (word.startsWith("todo")) {
-               list[i] = new Task(word);
-               String description = word.substring(4);
-               if (description.isEmpty()) {
-                   throw new DukeException("I am in fact not capable of making up tasks");
-               }
-               System.out.println("Got it. I've added this task:");
-               list[i] = new Todo(description);
-               System.out.println(list[i].toString());
-               System.out.println("Now you have " + i + " tasks in the list.");
-           } else if (word.startsWith("deadline")) {
-               if (!word.contains("/by")) {
-                   throw new DukeException("You're smart enough to use the right format aren't you?");
-               }
-               list[i] = new Task(word);
-               System.out.println("Got it. I've added this task:");
-               String description = word.substring(9, word.indexOf('/'));
-               if (description.isEmpty()) {
-                   throw new DukeException("Existential dread doesn't count, type in something adequate and preferably visible!");
-               }
-               String by = word.substring(word.indexOf('/') + 3);
-               if (by.isEmpty()) {
-                   throw new DukeException("Planning to procrastinate huh?");
-               }
-               list[i] = new Deadline(description, by);
-               System.out.println(list[i].toString());
-               System.out.println("Now you have " + i + " tasks in the list.");
-           } else if (word.startsWith("event")) {
-               if (!word.contains("/from") || !word.contains("/to")) {
-                   throw new DukeException("ain't got a timeframe?");
-               }
-               list[i] = new Task(word);
-               System.out.println("Got it. I've added this task:");
-               String description = word.substring(6, word.indexOf('/'));
-               if (description.isEmpty()) {
-                   throw new DukeException("No event in mind at all?");
-               }
-               String from = word.substring(word.indexOf('/') + 5, word.lastIndexOf('/'));
-               String to = word.substring(word.lastIndexOf('/') + 3);
-               if (from.isEmpty() || to.isEmpty()) {
-                   throw new DukeException("Forever ain't a timeframe, use the typical hours like a normal person!");
-               }
-               list[i] = new Event(description, from, to);
-               System.out.println(list[i].toString());
-               System.out.println("Now you have " + i + " tasks in the list.");
-           } else {
-               i--;
-               throw new DukeException("I've got no clue what you're possibly tryna do");
-           }
-       } catch (DukeException e) {
-           i--;
-           System.out.println(line);
-           System.out.println(" " + e.getMessage());
-           System.out.println(line);
-       }
-        System.out.println(line.substring(0,c) + "(._.)" + line.substring(c+5,len));
-    }
-    }
-    System.out.println(line);
-    System.out.println("Bye. Hope to see you again soon!");
-    System.out.println(line);
+
+        while (true) {
+            String word = in.nextLine();
+            if (word.equals("bye")) {
+                break;
+            } else {
+                try {
+                    if (word.equals("list")) {
+                        System.out.println("Here are the tasks in your list:");
+                        for (int j = 0; j < list.size(); j++) {
+                            System.out.println((j + 1) + ". " + list.get(j).toString());
+                        }
+                        continue;
+
+                    } else if (word.startsWith("mark")) {
+                        Scanner skip = new Scanner(word);
+                        if (!skip.hasNext()) {
+                            throw new DukeException("Finish the sentence!!");
+                        }
+                        skip.next();
+                        if (!skip.hasNextInt()) {
+                            throw new DukeException("You know of numbers don't you? Use them.");
+                        }
+                        int index = skip.nextInt() - 1; // 1-based input
+                        if (index < 0 || index >= list.size()) {
+                            throw new DukeException("Did you even come up with that many tasks in the first place?" + (index + 1));
+                        }
+                        list.get(index).mark(true);
+                        System.out.println("Nice! I've marked this task as done:");
+                        System.out.println(list.get(index).toString());
+
+                        // save after change
+                        try { storage.save(list); } catch (IOException ignored) {}
+                        continue;
+
+                    } else if (word.startsWith("unmark")) {
+                        Scanner skip = new Scanner(word);
+                        if (!skip.hasNext()) {
+                            throw new DukeException("Finish the sentence!!");
+                        }
+                        skip.next();
+                        if (!skip.hasNextInt()) {
+                            throw new DukeException("You know of numbers don't you? Use them.");
+                        }
+                        int index = skip.nextInt() - 1;
+                        if (index < 0 || index >= list.size()) {
+                            throw new DukeException("Did you even come up with that many tasks in the first place?" + (index + 1));
+                        }
+                        list.get(index).mark(false);
+                        System.out.println("OK, I've marked this task as not done yet:");
+                        System.out.println(list.get(index).toString());
+
+                        try { storage.save(list); } catch (IOException ignored) {}
+                        continue;
+
+                    } else if (word.startsWith("delete")) {
+                        Scanner skip = new Scanner(word);
+                        if (!skip.hasNext()) {
+                            throw new DukeException("Finish the sentence!!");
+                        }
+                        skip.next(); // "delete"
+                        if (!skip.hasNextInt()) {
+                            throw new DukeException("You know of numbers don't you? Use them.");
+                        }
+                        int index = skip.nextInt() - 1;
+                        if (index < 0 || index >= list.size()) {
+                            throw new DukeException("Did you even come up with that many tasks in the first place?" + (index + 1));
+                        }
+                        Task removed = list.remove(index);
+                        System.out.println("Noted. I've removed this task:");
+                        System.out.println("  " + removed.toString());
+                        System.out.println("Now you have " + list.size() + " tasks in the list.");
+
+                        try { storage.save(list); } catch (IOException ignored) {}
+                        continue;
+
+                    } else if (word.startsWith("todo")) {
+                        String description = word.substring(4).trim();
+                        if (description.isEmpty()) {
+                            throw new DukeException("I am in fact not capable of making up tasks");
+                        }
+                        Task t = new Todo(description);
+                        list.add(t);
+                        System.out.println("Got it. I've added this task:");
+                        System.out.println(t.toString());
+                        System.out.println("Now you have " + list.size() + " tasks in the list.");
+
+                        try { storage.save(list); } catch (IOException ignored) {}
+
+                    } else if (word.startsWith("deadline")) {
+                        if (!word.contains("/by")) {
+                            throw new DukeException("You're smart enough to use the right format aren't you?");
+                        }
+                        String description = word.substring(9, word.indexOf('/')).trim();
+                        if (description.isEmpty()) {
+                            throw new DukeException("Existential dread doesn't count, type in something adequate and preferably visible!");
+                        }
+                        String by = word.substring(word.indexOf('/') + 3).trim();
+                        if (by.isEmpty()) {
+                            throw new DukeException("Planning to procrastinate huh?");
+                        }
+                        Task t = new Deadline(description, by);
+                        list.add(t);
+                        System.out.println("Got it. I've added this task:");
+                        System.out.println(t.toString());
+                        System.out.println("Now you have " + list.size() + " tasks in the list.");
+
+                        try { storage.save(list); } catch (IOException ignored) {}
+
+                    } else if (word.startsWith("event")) {
+                        if (!word.contains("/from") || !word.contains("/to")) {
+                            throw new DukeException("ain't got a timeframe?");
+                        }
+                        String description = word.substring(5 + 1, word.indexOf('/')).trim(); // after "event"
+                        if (description.isEmpty()) {
+                            throw new DukeException("No event in mind at all?");
+                        }
+                        String from = word.substring(word.indexOf("/from") + 6, word.lastIndexOf('/')).trim();
+                        String to = word.substring(word.lastIndexOf("/to") + 4).trim();
+                        if (from.isEmpty() || to.isEmpty()) {
+                            throw new DukeException("Forever ain't a timeframe, use the typical hours like a normal person!");
+                        }
+                        Task t = new Event(description, from, to);
+                        list.add(t);
+                        System.out.println("Got it. I've added this task:");
+                        System.out.println(t.toString());
+                        System.out.println("Now you have " + list.size() + " tasks in the list.");
+
+                        try { storage.save(list); } catch (IOException ignored) {}
+
+                    } else {
+                        throw new DukeException("I've got no clue what you're possibly tryna do");
+                    }
+                } catch (DukeException e) {
+                    System.out.println(line);
+                    System.out.println(" " + e.getMessage());
+                    System.out.println(line);
+                }
+            }
+        }
+        System.out.println(line);
+        System.out.println("Bye. Hope to see you again soon!");
+        System.out.println(line);
     }
 }
