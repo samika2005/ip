@@ -8,14 +8,9 @@ import java.io.IOException;
 public class Anna {
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
+        Ui ui = new Ui();
 
-        String line = "____________________________________________________________";
-        int len = line.length();
-        System.out.println(line);
-        System.out.println("Hello! I'm Anna!");
-        System.out.println("What can i do for you?");
-        System.out.println(line);
-
+        ui.showWelcome();
         TaskList list;
 
         Storage storage = new Storage("data/anna.txt");
@@ -33,13 +28,10 @@ public class Anna {
                 try { storage.save(list.asList()); } catch (IOException ignore) {}
                 break;
             } else {
-                System.out.println(line);
+                ui.showLine();
                 try {
                     if (word.equals("list")) {
-                        System.out.println("Here are the tasks in your list:");
-                        for (int j = 0; j < list.size(); j++) {
-                            System.out.println((j + 1) + ". " + list.get(j).toString());
-                        }
+                        ui.showList(list);
                         continue;
 
                     } else if (word.startsWith("mark")) {
@@ -97,9 +89,7 @@ public class Anna {
                             throw new DukeException("Did you even come up with that many tasks in the first place?" + (index + 1));
                         }
                         Task removed = list.remove(index);
-                        System.out.println("Noted. I've removed this task:");
-                        System.out.println("  " + removed.toString());
-                        System.out.println("Now you have " + list.size() + " tasks in the list.");
+                        ui.showDeleted(removed, list.size());
 
                         try { storage.save(list.asList()); } catch (IOException ignored) {}
                         continue;
@@ -175,16 +165,12 @@ public class Anna {
                     else {
                         throw new DukeException("I've got no clue what you're possibly tryna do");
                     }
-                    System.out.println(line);
+                    ui.showLine();
                 } catch (DukeException e) {
-                    System.out.println(line);
-                    System.out.println(" " + e.getMessage());
-                    System.out.println(line);
+                    ui.showError(e.getMessage());
                 }
             }
         }
-        System.out.println(line);
-        System.out.println("Bye. Hope to see you again soon!");
-        System.out.println(line);
+        ui.showBye();
     }
 }
