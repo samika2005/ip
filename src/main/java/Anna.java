@@ -24,7 +24,7 @@ public class Anna {
             list.addAll(loaded);
         } catch (IOException | DukeException e) {
             // start empty if file is missing/corrupted/unparseable
-            System.out.println("No previous tasks found, starting fresh!");
+            list = new ArrayList<>();
         }
 
         while (true) {
@@ -32,6 +32,7 @@ public class Anna {
             if (word.equals("bye")) {
                 break;
             } else {
+                System.out.println(line);
                 try {
                     if (word.equals("list")) {
                         System.out.println("Here are the tasks in your list:");
@@ -173,6 +174,7 @@ public class Anna {
                     else {
                         throw new DukeException("I've got no clue what you're possibly tryna do");
                     }
+                    System.out.println(line);
                 } catch (DukeException e) {
                     System.out.println(line);
                     System.out.println(" " + e.getMessage());
