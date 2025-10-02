@@ -16,20 +16,21 @@ public class Anna {
         System.out.println("What can i do for you?");
         System.out.println(line);
 
-        ArrayList<Task> list = new ArrayList<>();
+        TaskList list;
 
         Storage storage = new Storage("data/anna.txt");
         try {
-            ArrayList<Task> loaded = storage.load();   // load() throws DukeException
-            list.addAll(loaded);
+            list = new TaskList(storage.load());
         } catch (IOException | DukeException e) {
             // start empty if file is missing/corrupted/unparseable
-            list = new ArrayList<>();
+            System.out.println("Load failed: " + e.getMessage());
+            list = new TaskList();
         }
 
         while (true) {
             String word = in.nextLine();
             if (word.equals("bye")) {
+                try { storage.save(list.asList()); } catch (IOException ignore) {}
                 break;
             } else {
                 System.out.println(line);
@@ -59,7 +60,7 @@ public class Anna {
                         System.out.println(list.get(index).toString());
 
                         // save after change
-                        try { storage.save(list); } catch (IOException ignored) {}
+                        try { storage.save(list.asList()); } catch (IOException ignored) {}
                         continue;
 
                     } else if (word.startsWith("unmark")) {
@@ -79,7 +80,7 @@ public class Anna {
                         System.out.println("OK, I've marked this task as not done yet:");
                         System.out.println(list.get(index).toString());
 
-                        try { storage.save(list); } catch (IOException ignored) {}
+                        try { storage.save(list.asList()); } catch (IOException ignored) {}
                         continue;
 
                     } else if (word.startsWith("delete")) {
@@ -100,7 +101,7 @@ public class Anna {
                         System.out.println("  " + removed.toString());
                         System.out.println("Now you have " + list.size() + " tasks in the list.");
 
-                        try { storage.save(list); } catch (IOException ignored) {}
+                        try { storage.save(list.asList()); } catch (IOException ignored) {}
                         continue;
 
                     } else if (word.startsWith("todo")) {
@@ -114,7 +115,7 @@ public class Anna {
                         System.out.println(t.toString());
                         System.out.println("Now you have " + list.size() + " tasks in the list.");
 
-                        try { storage.save(list); } catch (IOException ignored) {}
+                        try { storage.save(list.asList()); } catch (IOException ignored) {}
 
                     } else if (word.startsWith("deadline")) {
                         if (!word.contains("/by")) {
@@ -134,7 +135,7 @@ public class Anna {
                         System.out.println(t.toString());
                         System.out.println("Now you have " + list.size() + " tasks in the list.");
 
-                        try { storage.save(list); } catch (IOException ignored) {}
+                        try { storage.save(list.asList()); } catch (IOException ignored) {}
 
                     } else if (word.startsWith("event")) {
                         if (!word.contains("/from") || !word.contains("/to")) {
@@ -155,7 +156,7 @@ public class Anna {
                         System.out.println(t.toString());
                         System.out.println("Now you have " + list.size() + " tasks in the list.");
 
-                        try { storage.save(list); } catch (IOException ignored) {}
+                        try { storage.save(list.asList()); } catch (IOException ignored) {}
 
                     } else if (word.startsWith("find")) {
                         String keyword = word.substring(4).trim();

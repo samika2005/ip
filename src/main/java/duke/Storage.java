@@ -4,41 +4,75 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Storage {
-    private String filePath;
+    private final String filePath;
 
     public Storage(String filePath) {
         this.filePath = filePath;
     }
 
     // Loads tasks from file
-    public ArrayList<Task> load() throws IOException, DukeException {
-        ArrayList<Task> tasks = new ArrayList<>();
+    public List<Task> load() throws IOException, DukeException {
+        List<Task> tasks = new ArrayList<>();
         File file = new File(filePath);
 
         if (!file.exists()) {
-            file.getParentFile().mkdirs(); // creates "data" folder if missing
+            File parent = file.getParentFile();
+            if (parent != null) parent.mkdirs();  // create "data" folder if missing
             file.createNewFile();
         }
 
-        Scanner scanner = new Scanner(file);
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            Task t = Parser.parseTask(line);
-            tasks.add(t);
+        try (Scanner scanner = new Scanner(file)) {
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine().trim();
+                if (line.isEmpty()) continue;
+                Task t = parseTaskFromSave(line);
+                tasks.add(t);
+            }
         }
-        scanner.close();
         return tasks;
     }
 
-    // Saves tasks to file
-    public void save(ArrayList<Task> tasks) throws IOException {
-        FileWriter writer = new FileWriter(filePath);
-        for (Task task : tasks) {
-            writer.write(task.toSaveFormat() + System.lineSeparator());
+    private Task parseTaskFromSave(String line) throws DukeException {
+        String cleaned = line.replace("\uFEFF", "").trim();
+        String[] parts = cleaned.split("\\s*\\|\\s*");
+
+        if (parts.length < 3) throw new DukeException("Bad save line: " + line);
+
+        String type = parts[0].trim();
+        boolean done = parts[1].trim().equals("1");
+        String desc = parts[2];
+
+        switch (type) {
+            case "T":
+                Todo t = new Todo(desc);
+                t.mark(done);
+                return t;
+            case "D":
+                if (parts.length < 4) throw new DukeException("Bad deadline line: " + line);
+                Deadline d = new Deadline(desc, parts[3]);
+                d.mark(done);
+                return d;
+            case "E":
+                if (parts.length < 5) throw new DukeException("Bad event line: " + line);
+                Event e = new Event(desc, parts[3], parts[4]);
+                e.mark(done);
+                return e;
+            default:
+                throw new DukeException("Unknown task type: '" + type + "'");
         }
-        writer.close();
+    }
+
+    // Saves tasks to file
+    public void save(List<Task> tasks) throws IOException {
+        try (FileWriter writer = new FileWriter(filePath)) {
+            for (Task task : tasks) {
+                writer.write(task.toSaveFormat());
+                writer.write(System.lineSeparator());
+            }
+        }
     }
 }
