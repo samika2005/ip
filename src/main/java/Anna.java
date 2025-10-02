@@ -156,7 +156,21 @@ public class Anna {
 
                         try { storage.save(list); } catch (IOException ignored) {}
 
-                    } else {
+                    } else if (word.startsWith("find")) {
+                        String keyword = word.substring(4).trim();
+                        if (keyword.isEmpty()) {
+                            throw new DukeException("What exactly are you asking me to find?");
+                        }
+                        System.out.println("Here are the matching tasks in your list:");
+                        for (int j = 0; j < list.size(); j++) {
+                            Task t = list.get(j);
+                            if (t.toString().contains(keyword)) {
+                                System.out.println((j + 1) + ". " + t);
+                            }
+                        }
+                        continue;
+                    }
+                    else {
                         throw new DukeException("I've got no clue what you're possibly tryna do");
                     }
                 } catch (DukeException e) {
