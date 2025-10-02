@@ -13,30 +13,31 @@ public class Storage {
         this.filePath = filePath;
     }
 
-    //Loads tasks from file
-    public ArrayList<String> load() throws IOException {
-        ArrayList<String> tasks = new ArrayList<>();
+    // Loads tasks from file
+    public ArrayList<Task> load() throws IOException, DukeException {
+        ArrayList<Task> tasks = new ArrayList<>();
         File file = new File(filePath);
 
-        // f the file doesn't exist, create the file
         if (!file.exists()) {
-            file.getParentFile().mkdirs(); //creates "data" folder if missing
+            file.getParentFile().mkdirs(); // creates "data" folder if missing
             file.createNewFile();
         }
 
         Scanner scanner = new Scanner(file);
         while (scanner.hasNextLine()) {
-            tasks.add(scanner.nextLine());
+            String line = scanner.nextLine();
+            Task t = Parser.parseTask(line);
+            tasks.add(t);
         }
         scanner.close();
         return tasks;
     }
 
-    //Saves tasks to file
-    public void save(ArrayList<String> tasks) throws IOException {
+    // Saves tasks to file
+    public void save(ArrayList<Task> tasks) throws IOException {
         FileWriter writer = new FileWriter(filePath);
-        for (String task : tasks) {
-            writer.write(task + System.lineSeparator());
+        for (Task task : tasks) {
+            writer.write(task.toSaveFormat() + System.lineSeparator());
         }
         writer.close();
     }
