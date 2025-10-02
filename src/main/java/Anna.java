@@ -5,7 +5,29 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.IOException;
 
+/**
+ * The central and entry point of the Anna chatbot program.
+ * <p>
+ * Anna is a task manager that supports commands such as
+ * {@code list}, {@code todo}, {@code deadline}, {@code event},
+ * {@code mark}, {@code unmark}, {@code delete}, {@code find}, and {@code bye}.
+ * </p>
+ * <p>
+ * Tasks are saved to a file through {@link Storage} so they
+ * are persistant across runs.
+ * </p>
+ */
+
 public class Anna {
+    /**
+     * Starts the Anna chatbot.
+     * <p>
+     * Loads tasks from storage (if available) and then waits
+     * for user input in a loop until {@code bye} is entered.
+     * </p>
+     *
+     * @param args Command-line arguments (not used).
+     */
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
         Ui ui = new Ui();
