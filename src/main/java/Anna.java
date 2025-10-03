@@ -5,39 +5,55 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.IOException;
 
+/**
+ * The central and entry point of the Anna chatbot program.
+ * <p>
+ * Anna is a task manager that supports commands such as
+ * {@code list}, {@code todo}, {@code deadline}, {@code event},
+ * {@code mark}, {@code unmark}, {@code delete}, {@code find}, and {@code bye}.
+ * </p>
+ * <p>
+ * Tasks are saved to a file through {@link Storage} so they
+ * are persistant across runs.
+ * </p>
+ */
+
 public class Anna {
+    /**
+     * Starts the Anna chatbot.
+     * <p>
+     * Loads tasks from storage (if available) and then waits
+     * for user input in a loop until {@code bye} is entered.
+     * </p>
+     *
+     * @param args Command-line arguments (not used).
+     */
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
+        Ui ui = new Ui();
 
-        String line = "____________________________________________________________";
-        int len = line.length();
-        System.out.println(line);
-        System.out.println("Hello! I'm Anna!");
-        System.out.println("What can i do for you?");
-        System.out.println(line);
-
-        ArrayList<Task> list = new ArrayList<>();
+        ui.showWelcome();
+        TaskList list;
 
         Storage storage = new Storage("data/anna.txt");
         try {
-            ArrayList<Task> loaded = storage.load();   // load() throws DukeException
-            list.addAll(loaded);
+            list = new TaskList(storage.load());
         } catch (IOException | DukeException e) {
             // start empty if file is missing/corrupted/unparseable
-            System.out.println("No previous tasks found, starting fresh!");
+            System.out.println("Load failed: " + e.getMessage());
+            list = new TaskList();
         }
 
         while (true) {
             String word = in.nextLine();
             if (word.equals("bye")) {
+                try { storage.save(list.asList()); } catch (IOException ignore) {}
                 break;
             } else {
+                ui.showLine();
                 try {
                     if (word.equals("list")) {
-                        System.out.println("Here are the tasks in your list:");
-                        for (int j = 0; j < list.size(); j++) {
-                            System.out.println((j + 1) + ". " + list.get(j).toString());
-                        }
+                        ui.showList(list);
                         continue;
 
                     } else if (word.startsWith("mark")) {
@@ -58,7 +74,7 @@ public class Anna {
                         System.out.println(list.get(index).toString());
 
                         // save after change
-                        try { storage.save(list); } catch (IOException ignored) {}
+                        try { storage.save(list.asList()); } catch (IOException ignored) {}
                         continue;
 
                     } else if (word.startsWith("unmark")) {
@@ -78,7 +94,7 @@ public class Anna {
                         System.out.println("OK, I've marked this task as not done yet:");
                         System.out.println(list.get(index).toString());
 
-                        try { storage.save(list); } catch (IOException ignored) {}
+                        try { storage.save(list.asList()); } catch (IOException ignored) {}
                         continue;
 
                     } else if (word.startsWith("delete")) {
@@ -95,11 +111,9 @@ public class Anna {
                             throw new DukeException("Did you even come up with that many tasks in the first place?" + (index + 1));
                         }
                         Task removed = list.remove(index);
-                        System.out.println("Noted. I've removed this task:");
-                        System.out.println("  " + removed.toString());
-                        System.out.println("Now you have " + list.size() + " tasks in the list.");
+                        ui.showDeleted(removed, list.size());
 
-                        try { storage.save(list); } catch (IOException ignored) {}
+                        try { storage.save(list.asList()); } catch (IOException ignored) {}
                         continue;
 
                     } else if (word.startsWith("todo")) {
@@ -113,7 +127,7 @@ public class Anna {
                         System.out.println(t.toString());
                         System.out.println("Now you have " + list.size() + " tasks in the list.");
 
-                        try { storage.save(list); } catch (IOException ignored) {}
+                        try { storage.save(list.asList()); } catch (IOException ignored) {}
 
                     } else if (word.startsWith("deadline")) {
                         if (!word.contains("/by")) {
@@ -133,7 +147,7 @@ public class Anna {
                         System.out.println(t.toString());
                         System.out.println("Now you have " + list.size() + " tasks in the list.");
 
-                        try { storage.save(list); } catch (IOException ignored) {}
+                        try { storage.save(list.asList()); } catch (IOException ignored) {}
 
                     } else if (word.startsWith("event")) {
                         if (!word.contains("/from") || !word.contains("/to")) {
@@ -154,7 +168,7 @@ public class Anna {
                         System.out.println(t.toString());
                         System.out.println("Now you have " + list.size() + " tasks in the list.");
 
-                        try { storage.save(list); } catch (IOException ignored) {}
+                        try { storage.save(list.asList()); } catch (IOException ignored) {}
 
                     } else if (word.startsWith("find")) {
                         String keyword = word.substring(4).trim();
@@ -173,15 +187,12 @@ public class Anna {
                     else {
                         throw new DukeException("I've got no clue what you're possibly tryna do");
                     }
+                    ui.showLine();
                 } catch (DukeException e) {
-                    System.out.println(line);
-                    System.out.println(" " + e.getMessage());
-                    System.out.println(line);
+                    ui.showError(e.getMessage());
                 }
             }
         }
-        System.out.println(line);
-        System.out.println("Bye. Hope to see you again soon!");
-        System.out.println(line);
+        ui.showBye();
     }
 }
