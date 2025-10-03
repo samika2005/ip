@@ -1,53 +1,63 @@
 package duke;
 
+/**
+ * Utility class that handles parsing of stored task data
+ * back into {@link Task} objects.
+ */
 public class Parser {
 
-    public static boolean isBye(String s)      { return s.equals("bye"); }
-    public static boolean isList(String s)     { return s.equals("list"); }
-    public static boolean isMark(String s)     { return s.startsWith("mark"); }
-    public static boolean isUnmark(String s)   { return s.startsWith("unmark"); }
-    public static boolean isDelete(String s)   { return s.startsWith("delete"); }
-    public static boolean isTodo(String s)     { return s.startsWith("todo"); }
-    public static boolean isDeadline(String s) { return s.startsWith("deadline"); }
-    public static boolean isEvent(String s)    { return s.startsWith("event"); }
+    /**
+     * Parses a line from the save file and reconstructs the
+     * appropriate {@link Task} object (Todo, Deadline, or Event).
+     *
+     * <p>
+     * Each line is expected to follow the format:
+     * <ul>
+     *     <li>{@code T | 0/1 | description}</li>
+     *     <li>{@code D | 0/1 | description | by}</li>
+     *     <li>{@code E | 0/1 | description | from | to}</li>
+     * </ul>
+     * where:
+     * <ul>
+     *     <li>The first token is the task type ({@code T}, {@code D}, or {@code E}).</li>
+     *     <li>The second token is {@code 1} if the task is done, {@code 0} otherwise.</li>
+     *     <li>The rest are task-specific details.</li>
+     * </ul>
+     * </p>
+     *
+     * @param line A single line from the save file.
+     * @return A reconstructed {@link Task}.
+     * @throws DukeException If the line is invalid or cannot be parsed.
+     */
+    public static Task parseTaskFromSave(String line) throws DukeException {
+        String cleaned = line.replace("\uFEFF", "").trim();
+        String[] parts = cleaned.split("\\s*\\|\\s*");
 
-    /** Parses 1-based index after mark/unmark/delete. */
-    public static int parseIndex1Based(String line) throws DukeException {
-        String[] parts = line.trim().split("\\s+");
-        if (parts.length < 2) throw new DukeException("Finish the sentence!!");
-        try {
-            int idx = Integer.parseInt(parts[1]);
-            if (idx <= 0) throw new NumberFormatException();
-            return idx;
-        } catch (NumberFormatException e) {
-            throw new DukeException("You know of numbers don't you? Use them.");
+        if (parts.length < 3) throw new DukeException("Bad save line: " + line);
+
+        String type = parts[0].trim();
+        boolean done = parts[1].trim().equals("1");
+        String desc = parts[2];
+
+        switch (type) {
+            case "T":
+                Todo t = new Todo(desc);
+                t.mark(done);
+                return t;
+            case "D":
+                if (parts.length < 4) throw new DukeException("Bad deadline line: " + line);
+                Deadline d = new Deadline(desc, parts[3]);
+                d.mark(done);
+                return d;
+            case "E":
+                if (parts.length < 5) throw new DukeException("Bad event line: " + line);
+                Event e = new Event(desc, parts[3], parts[4]);
+                e.mark(done);
+                return e;
+            default:
+                throw new DukeException("Unknown task type: '" + type + "'");
         }
     }
 
-    /** Builds a Task from todo/deadline/event*/
-    public static Task parseTask(String line) throws DukeException {
-        if (isTodo(line)) {
-            String description = line.substring(4).trim();
-            if (description.isEmpty()) throw new DukeException("I am in fact not capable of making up tasks");
-            return new Todo(description);
-        }
-        if (isDeadline(line)) {
-            if (!line.contains("/by")) throw new DukeException("You're smart enough to use the right format aren't you?");
-            String description = line.substring(9, line.indexOf('/')).trim();
-            if (description.isEmpty()) throw new DukeException("Existential dread doesn't count, type in something adequate and preferably visible!");
-            String by = line.substring(line.indexOf("/by") + 3).trim();
-            if (by.isEmpty()) throw new DukeException("Planning to procrastinate huh?");
-            return new Deadline(description, by);
-        }
-        if (isEvent(line)) {
-            if (!line.contains("/from") || !line.contains("/to")) throw new DukeException("ain't got a timeframe?");
-            String description = line.substring(6, line.indexOf('/')).trim();
-            if (description.isEmpty()) throw new DukeException("No event in mind at all?");
-            String from = line.substring(line.indexOf("/from") + 5, line.lastIndexOf('/')).trim();
-            String to   = line.substring(line.lastIndexOf("/to") + 3).trim();
-            if (from.isEmpty() || to.isEmpty()) throw new DukeException("Forever ain't a timeframe, use the typical hours like a normal person!");
-            return new Event(description, from, to);
-        }
-        throw new DukeException("I've got no clue what you're possibly tryna do");
-    }
+
 }

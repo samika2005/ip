@@ -1,56 +1,59 @@
 package duke;
 
+/**
+ * Represents a generic task with a description and a completion status.
+ * This is the superclass for more specific task types such as
+ * {@link Todo}, {@link Deadline}, and {@link Event}.
+ */
 public class Task {
     protected String word;
+    /** Whether the task is marked as done. */
     protected boolean isDone;
 
+    /**
+     * Creates a new task with the given description.
+     * By default, the task is not marked as done.
+     *
+     * @param word Description of the task.
+     */
     public Task(String word) {
         this.word = word;
         this.isDone = false;
     }
 
+    /**
+     * Marks or unmarks this task as done.
+     *
+     * @param done {@code true} to mark the task as done, {@code false} otherwise.
+     */
     public void mark(boolean done) {
         this.isDone = done;
     }
 
+/**
+ * Returns the task's completion status in save format.
+ *
+ * @return "1" if the task is done, "0" otherwise.
+ */
     public String statusBit() {
         return (isDone ? "1" : "0");
     }
 
+    /**
+     * Returns the string format used for saving this task to file.
+     *
+     * @return Save format string containing the completion status and description.
+     */
     public String toSaveFormat() {
         return (isDone ? "1 | " : "0 | ") + word;
     }
 
-    public static Task fromSave(String line) throws DukeException {
-        // T|0|desc
-        // D|1|desc|by text
-        // E|0|desc|from text|to text
-        String[] parts = line.split("\\|", -1);
-        if (parts.length < 3) throw new DukeException("Bad save line: " + line);
-        String type = parts[0];
-        boolean done = "1".equals(parts[1]);
-        String desc = parts[2];
-
-        Task t;
-        switch (type) {
-            case "T":
-                t = new Todo(desc);
-                break;
-            case "D":
-                if (parts.length < 4) throw new DukeException("Bad deadline line: " + line);
-                t = new Deadline(desc, parts[3]);
-                break;
-            case "E":
-                if (parts.length < 5) throw new DukeException("Bad event line: " + line);
-                t = new Event(desc, parts[3], parts[4]);
-                break;
-            default:
-                throw new DukeException("Unknown task type: " + type);
-        }
-        t.mark(done);
-        return t;
-    }
-
+    /**
+     * Returns a string representation of the task, including its status.
+     *
+     * @return A string in the format "[X] description" if done,
+     *         or "[ ] description" if not done.
+     */
     @Override
     public String toString() {
         if (isDone) {
